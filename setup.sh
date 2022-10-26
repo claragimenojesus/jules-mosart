@@ -11,7 +11,7 @@
 ## WB: seems like we need python2, so let's create a virtualenv first:
 
 wget https://repo.anaconda.com/archive/Anaconda3-2022.05-Linux-x86_64.sh
-bash Anaconda3-2020.02-Linux-x86_64.sh
+bash Anaconda3-2022.05-Linux-x86_64.sh
 conda install -c conda-forge pygraphviz # this solved some error messages
 
 # make sure you copy the file environment.yml from the git repo
@@ -39,11 +39,9 @@ cd ..
 export PATH=$HOME/.local/cylc/bin:$PATH
 cylc --version
 cd ~/local/cylc
-# make                            # WB: is install needed?? What does this do? Getting latex compilation errors
 cd ../..
 
 export PATH=$HOME/.local/bin:$PATH
-.~/.bashrc                      # WB: what is this for?
 cylc check-software
 
 ## Install Rose
@@ -76,7 +74,7 @@ prefix-web.u=https://code.metoffice.gov.uk/trac/roses-u/intertrac/source:
 prefix-ws.u=https://code.metoffice.gov.uk/rosie/u" >> rose.conf
 
 
-.~/bashrc
+.~/.bashrc
 
 # Check the Rose installation and server links
 cd ~/.local/
@@ -105,8 +103,6 @@ metofficesharedrepos =code*.metoffice.gov.uk
 username =yourusername
 store-plaintext-passwords=no" >> servers.txt
 
-.~/.bashrc
-
 # Check FCM installation
 fcm --version
 
@@ -128,13 +124,14 @@ browser.comp-pat[jules_doc.x] = (?msx-i:\A // [^/]+ /svn/ ([^/]+) /*(.*) \z)" >>
 #firefox https://code.metoffice.gov.uk/trac/home/raw-attachment/wiki/AuthenticationCaching/GpgAgent/mosrs-cache-password
 #Again, put in your MOSRS password, save the file and close Firefox.
 
- mv ~/Downloads/mosrs-setup-gpg-agent ~/.local/mosrs-setup-gpg-agent
+mv ~/Downloads/mosrs-setup-gpg-agent ~/.local/mosrs-setup-gpg-agent
 
-   mv ~/Downloads/mosrs-cache-password ~/.local/mosrs-cache-password
+mv ~/Downloads/mosrs-cache-password ~/.local/mosrs-cache-password
 
-   export PATH=$HOME/.local:$PATH
+export PATH=$HOME/.local:$PATH
 
-   chmod -R 755 ~/.local
+chmod -R 755 ~/.local
+
 #Now activate
 . mosrs-setup-gpg-agent
 
@@ -171,15 +168,16 @@ rosie go
 # For rosie go, you will need to download XQuartz if using Mac or Xming for Windows which you need to run before running Putty
 
 ## Add the following to your .bashrc file
-echo '#zlib' >> ~/ .bashrc
-echo 'export PATH=/opt/zlib/:$PATH' >> ~/ .bashrc
-echo '#openmpi' >> ~/ .bashrc
-echo 'export PATH=/opt/openmpi/bin:$PATH' >> ~/ .bashrc
-echo 'export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH' >> ~/ .bashrc
-echo '#netcdf' >> ~/ .bashrc
-echo 'export PATH=/opt/netcdf_par/bin:$PATH' >> ~/ .bashrc
-echo 'export LD_LIBRARU_PATH=/opt/netcdf_par/lib:$LD_LIBRARY_PATH' >> ~/ .bashrc
-source ~/ .bashrc
+echo '#zlib' >> ~/.bashrc
+echo 'export PATH=/opt/zlib/:$PATH' >> ~/.bashrc
+echo '#openmpi' >> ~/.bashrc
+echo 'export PATH=/opt/openmpi/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+echo '#netcdf' >> ~/.bashrc
+echo 'export PATH=/opt/netcdf_par/bin:$PATH' >> ~/.bashrc
+echo 'export LD_LIBRARU_PATH=/opt/netcdf_par/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
+
 ### Check installations worked properly
 cd ~
 echo $SHELL

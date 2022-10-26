@@ -29,7 +29,8 @@ amunas <- list()
 
 ## read JULES output and plot for visual checking
 
-runoff  <- read_ncdf("projects/JULES_vn6.1.S2.daily_hydrology.2018.2D.nc", var = "runoff")
+
+f  <- read_ncdf("projects/JULES_vn6.1.S2.daily_hydrology.2018.2D.nc", var = "runoff")
 f1 <- st_set_dimensions(f, 3, values = as.character(st_get_dimension_values(f, 3)))
 f2 <- slice(f, index = 2, along = "time")
 
