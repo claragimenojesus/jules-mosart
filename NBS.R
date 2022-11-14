@@ -70,6 +70,15 @@ qochalocs = st_sample(st_as_sfc(st_bbox(runoff)), 20)
 
 qocha_ts <- as.data.frame(st_extract(runoff, qochalocs))
 
+# Parameters:
+Ks = # saturated hydraulic conductivity
+Vmax = # maximum qocha storage volume [m3]
+Ac = # average contributing area [ ]
+Aq = # qocha area
+
+# Calculate number of grid cells contributing area occupies
+n = Ac/grid_size;
+
 for(i in unique(qocha_ts$geometry)) {
   ts <- qocha_ts[qocha_ts$geometry == i,]
   # apply cocha model. The basic steps are as follows:
@@ -81,7 +90,28 @@ for(i in unique(qocha_ts$geometry)) {
   
 }
 
+# Assumptions:
+# - Recharge rate = Ks. When there is water in the qocha, the soil is saturated and we can use the saturated hydraulic conductivity. 
+# TO DO: Run a senstitivity analysis on the parameter Ks.
+# Qocha overflow generates runoff - for now, we assume no overflow by setting Vmax to large value
+
+# Storage volume
+# V(t) = V(t+1) + Vin(t) + Vp(t) - Ve(t) -Vr(t) # Ve being evaporation volume and Vr recharge volume
+
+# overflow 
+# if V>Vmax
+# Qout(t)=(V(t)-Vmax)/dt
+
+# Recharge
+#if V>0
+#R(t)=min(V(t)/Area/dt,Ks)
+#Qss(t)=R(t)
+
+
+
 # insert altered time series into the original JULES data (Qs, Qss, ...)
+#Qs = Qscocha - n*Qtin
+#Qss = Qss + Qsscocha
 
 
 
