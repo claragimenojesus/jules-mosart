@@ -77,7 +77,11 @@ Ac = # average contributing area [ ]
 Aq = # qocha area
 
 # Calculate number of grid cells contributing area occupies
-n = Ac/grid_size;
+source("/latlon_to_km.R")
+grid1 = mean( c (latlon_to_km(lat[75],lat[1],lon[1],lon[1]) , latlon_to_km(lat[75],lat[1],lon[102],lon[102]) ))
+grid2 = mean( c (latlon_to_km(lat[1],lat[1],lon[1],lon[102]) , latlon_to_km(lat[75],lat[75],lon[1],lon[102]) ))
+gridcell_area = grid1 * grid2 / (102*75) # in km2
+n = Ac/gridcell_area;
 
 for(i in unique(qocha_ts$geometry)) {
   ts <- qocha_ts[qocha_ts$geometry == i,]
