@@ -77,10 +77,32 @@ Ac = # average contributing area [ ]
 Aq = # qocha area
 
 # Calculate number of grid cells contributing area occupies
-source("/latlon_to_km.R")
-grid1 = mean( c (latlon_to_km(lat[75],lat[1],lon[1],lon[1]) , latlon_to_km(lat[75],lat[1],lon[102],lon[102]) ))
-grid2 = mean( c (latlon_to_km(lat[1],lat[1],lon[1],lon[102]) , latlon_to_km(lat[75],lat[75],lon[1],lon[102]) ))
-gridcell_area = grid1 * grid2 / (102*75) # in km2
+# source("/latlon_to_km.R")
+# grid1 = mean( c (latlon_to_km(lat[75],lat[1],lon[1],lon[1]) , latlon_to_km(lat[75],lat[1],lon[102],lon[102]) ))
+# grid2 = mean( c (latlon_to_km(lat[1],lat[1],lon[1],lon[102]) , latlon_to_km(lat[75],lat[75],lon[1],lon[102]) ))
+# gridcell_area = grid1 * grid2 / (102*75) # in km2
+
+# Alternatively, use spDistN1, great circle distance option
+# Other projection method using spTransfrom to calculate avergae pixel area
+library(raster)
+library(rgdal)
+inputfile <- "jules_latlon_ESA_rahu.nc"
+lat <- raster(inputfile, varname="latitude")
+lon <- raster(inputfile, varname="longitude")
+plat <- rasterToPoints(lat)
+plon <- rasterToPoints(lon)
+lonlat <- cbind(plon[,3],plat[,3])
+lonlat <- SpatialPoints(lonlat, proj4string=CRS("+proj=longlat +datum=WGS84"))
+
+dist_vector = spDists(x = lonlat,longlat = TRUE, segments=TRUE, diagonal = FALSE)
+idx <- which(dist_vector>300)
+dist_vector[idx] <- NA
+
+# hist(dist_vector)
+
+av_dist <- mean(dist_vector, na.rm=TRUE)
+gridcell_area <- av_dist^2
+
 n = Ac/gridcell_area;
 
 for(i in unique(qocha_ts$geometry)) {
