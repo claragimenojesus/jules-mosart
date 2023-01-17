@@ -77,7 +77,7 @@ prefix-web.u=https://code.metoffice.gov.uk/trac/roses-u/intertrac/source:
 prefix-ws.u=https://code.metoffice.gov.uk/rosie/u" >> rose.conf
 
 
-.~/bashrc
+. ~/bashrc # Run bash script or log out and back in
 
 # Check the Rose installation and server links
 cd ~/.local/
@@ -107,7 +107,7 @@ metofficesharedrepos =code*.metoffice.gov.uk
 username =yourusername
 store-plaintext-passwords=no" >> servers.txt
 
-.~/.bashrc
+. ~/.bashrc  # Run bash script or log out and back in
 
 # Check FCM installation
 fcm --version
