@@ -65,7 +65,7 @@ echo "[rosie-id]
 prefix-username.u=yourusername
 
 [rose stem]
-automatic-options=SITE=jasmin" > rose.conf.txt
+automatic-options=SITE=jasmin" > rose.conf
 
 cd ~/.local/rose/etc/
 
@@ -101,11 +101,12 @@ fcm --version
 
 ls ~/.subversion/servers
 mkdir ~/.subversion
+cd ~/.subversion
 echo "[groups] 
 metofficesharedrepos =code*.metoffice.gov.uk
 [metofficesharedrepos]
 username =yourusername
-store-plaintext-passwords=no" >> servers.txt
+store-plaintext-passwords=no" >> servers
 
 . ~/.bashrc  # Run bash script or log out and back in
 
