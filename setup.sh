@@ -24,8 +24,8 @@ conda activate jules
 
 # create a directory for local software:
 
-mkdir ~/local
-cd ~/local
+mkdir ~/.local
+cd ~/.local
 
 # Install Cylc    ## WB: can we use package cylc-flow?
 
@@ -38,7 +38,7 @@ git checkout tags/6.0.2
 cd ..
 export PATH=$HOME/.local/cylc/bin:$PATH
 cylc --version
-cd ~/local/cylc
+cd ~/.local/cylc
 cd ../..
 
 export PATH=$HOME/.local/bin:$PATH
@@ -77,7 +77,7 @@ prefix-web.u=https://code.metoffice.gov.uk/trac/roses-u/intertrac/source:
 prefix-ws.u=https://code.metoffice.gov.uk/rosie/u" >> rose.conf
 
 
-. ~/bashrc # Run bash script or log out and back in
+. ~/.bashrc # Run bash script or log out and back in
 
 # Check the Rose installation and server links
 cd ~/.local/
