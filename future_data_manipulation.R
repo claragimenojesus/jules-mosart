@@ -7,20 +7,7 @@ library(ggplot2)
 library(stars)
 
 # Objective:
-# Concatenate variables: wind, pstar, lw_down, q, rh, sw_down to convert from 1980 to 2018 timeframe to 2000 to 2100
 # Convert future precipitation file to hourly data by extending the array and inputting the same values for hourly rainfall
-
-# Original files - 1980-01-01 00:00:00 to 2018-12-31 12:59:59
-#hist_precip <- nc_open('/mnt/homes/clara/rahu_data/WRF_climate_fixed/precip.nc')
-#hist_lwd <- nc_open('/mnt/homes/clara/rahu_data/WRF_climate_fixed/lw_down.nc')
-#hist_pstar <- nc_open('/mnt/homes/clara/rahu_data/WRF_climate_fixed/pstar.nc')
-#hist_q <- nc_open('/mnt/homes/clara/rahu_data/WRF_climate_fixed/q.nc')
-#hist_swd <- nc_open('/mnt/homes/clara/rahu_data/WRF_climate_fixed/sw_down.nc')
-#hist_t <- nc_open('/mnt/homes/clara/rahu_data/WRF_climate_fixed/t.nc')
-#hist_wind <- nc_open('/mnt/homes/clara/rahu_data/WRF_climate_fixed/wind.nc')
-
-#old_time <- ncvar_get(hist_precip, "time")
-#old_precip <- ncvar_get(hist_precip, "precip")
 
 # Format of old precip file to replicate
 #stars object with 3 dimensions and 1 attribute
@@ -68,12 +55,12 @@ colnames(stacked_df) <- c("lon","lat","time","precip..mm.") # change time column
 stacked_df$time <- full_times
 
 # Reconvert dataframe to nc file
+# ??
 
 
-
-###### Test on 10 days #######
+###### Test on 10 days ####### works!
 test10 <- future_precip[,,,1:10]
-# this works! for 10 days but very long to run
+# this works! for 10 days but very long to run - second approach after
 # df <- data.frame(lon = NA,lat=NA,time=array(NA,10*7650*24), precip=NA)
 # for (lon in seq(0,101)) {
 #   for (lat in seq(0, 74)) {
