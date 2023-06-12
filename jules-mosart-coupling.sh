@@ -37,7 +37,7 @@ cp /home/clara/JULES_output/jules-mosart-main/jules-mosart/bin/aux ~/$HOME/jules
 
 # Modify yaml files with appropriate paths
 
-# Run python script
+# Run python script, make sure to make changes to config_rahu.yaml file first
 ./mosart-rahu.py
 
 # Pull the simulated discharge time series at one of the gauging stations from the mosart output
