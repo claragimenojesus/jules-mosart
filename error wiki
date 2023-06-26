@@ -1,0 +1,9 @@
+Problem 1: Compilation issues
+Solution 1: However, you will need to set the following variable in site/suite.rc.CHAUKHAMBA:
+export JULES_FFLAGS_EXTRA="-fallow-argument-mismatch"
+and then in ~/MODELS/jules-vn6.1/etc/fcm-make/compiler/gfortran.cfg you will need to change the following line:
+$fflags_normal  = $fflags_common -Werror
+into:
+$fflags_normal  = $fflags_common #-Werror
+(or simply remove "-Werror")
+
