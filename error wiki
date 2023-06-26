@@ -7,3 +7,9 @@ into:
 $fflags_normal  = $fflags_common #-Werror
 (or simply remove "-Werror")
 
+
+
+
+Simon
+  hace 4 meses
+Hi Clara - the spinup is controlled via the rose-app.conf and suite.rc files. You can control the spinup length via the variables SPINCYCLES and SPINLEN in rose-app.conf. You should leave the spinup section as it was before in the app/jules/rose-app.conf file.
