@@ -163,11 +163,11 @@ cd jules-vn6.1
 export JULES_ROOT=$PWD
 echo $JULES_ROOT
 
-# note: JULES already comes with make.cfg. Why does this need to be overwritten?
+# note: JULES already comes with make.cfg. Why does this need to be overwritten? No need actually. Just need to make sure the environment variables match which they do.
 
 cp /home/clara/make.cfg ~/MODELS/jules-vn6.1/etc/fcm_make
 cd $JULES_ROOT
-fcm make -j 2 -f etc/fcm-make/make.cfg --new
+# this should not be needed (Rose-suite will compile jules.exe) fcm make -j 2 -f etc/fcm-make/make.cfg --new
 
 rosie go
 
