@@ -181,7 +181,12 @@ echo 'export PATH=/opt/openmpi/bin:$PATH' >> ~/ .bashrc
 echo 'export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH' >> ~/ .bashrc
 echo '#netcdf' >> ~/ .bashrc
 echo 'export PATH=/opt/netcdf_par/bin:$PATH' >> ~/ .bashrc
-echo 'export LD_LIBRARU_PATH=/opt/netcdf_par/lib:$LD_LIBRARY_PATH' >> ~/ .bashrc
+echo 'export LD_LIBRARY_PATH=/opt/netcdf_par/lib:$LD_LIBRARY_PATH' >> ~/ .bashrc
+echo '#solving jules.exe error message' >> ~/ .bashrc
+echo 'export PATH=~/MODELS/jules-vn6.1/bin:$PATH' >> ~/ .bashrc
+echo 'export PATH=~/MODELS/jules-vn6.1/build/bin:$PATH' >> ~/ .bashrc
+echo 'export PATH=~/MODELS/jules-vn6.1/rose-stem/bin:$PATH' >> ~/ .bashrc
+echo 'export JULES_ROOT=~/MODELS/jules-vn6.1' >> ~/ .bashrc
 source ~/ .bashrc
 ### Check installations worked properly
 cd ~
