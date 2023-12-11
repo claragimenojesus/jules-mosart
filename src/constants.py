@@ -45,7 +45,8 @@ OUTPUT_VARS = {
         'sthu_soilt',               # Unfrozen moisture content of each soil layer as a fraction of saturation on soil tiles (1)
         'sthu_irr',                 # Gridbox wetness of each soil layer over irrigation (1)
         'sthu_irr_soilt',           # Wetness of each soil layer over irrigation on soil tiles (1)
-        'irrig_water'               # Irrigation water demand (kg m-2 s-1)
+        'irrig_water',              # Irrigation water demand (kg m-2 s-1)
+        'snow_melt',
     ],
     'daily_vegetation' : [
         'lai'
