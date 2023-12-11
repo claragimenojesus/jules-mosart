@@ -24,8 +24,8 @@ conda activate jules
 
 # create a directory for local software:
 
-mkdir ~/local
-cd ~/local
+mkdir ~/.local
+cd ~/.local
 
 # Install Cylc    ## WB: can we use package cylc-flow?
 
@@ -38,11 +38,13 @@ git checkout tags/6.0.2
 cd ..
 export PATH=$HOME/.local/cylc/bin:$PATH
 cylc --version
-cd ~/local/cylc
+
+cd ~/.local/cylc
 cd ../..
 
 export PATH=$HOME/.local/bin:$PATH
 cylc check-software
+
 
 ## Install Rose
 cd ~/.local
@@ -52,7 +54,10 @@ cd rose
 #git tag -l
 git checkout tags/2018.02.0     # Clara and Simon use more recent version (2019.01)
 cd ..
+
 export PATH=$HOME/.local/rose/bin:$PATH
+chmod -R 755 ~/.local
+
 rose --version
 cd ..
 mkdir ~/.metomi
@@ -62,7 +67,7 @@ echo "[rosie-id]
 prefix-username.u=yourusername
 
 [rose stem]
-automatic-options=SITE=jasmin" > rose.conf.txt
+automatic-options=SITE=jasmin" > rose.conf
 
 cd ~/.local/rose/etc/
 
@@ -73,8 +78,7 @@ prefix-location.u=https://code.metoffice.gov.uk/svn/roses-u
 prefix-web.u=https://code.metoffice.gov.uk/trac/roses-u/intertrac/source:
 prefix-ws.u=https://code.metoffice.gov.uk/rosie/u" >> rose.conf
 
-
-.~/.bashrc
+. ~/.bashrc # Run bash script or log out and back in
 
 # Check the Rose installation and server links
 cd ~/.local/
@@ -93,15 +97,19 @@ git tag -l
 git checkout tags/2017.10.0
 cd ..
 export PATH=$HOME/.local/fcm/bin:$PATH
+chmod -R 755 ~/.local
 fcm --version
 
 ls ~/.subversion/servers
 mkdir ~/.subversion
+cd ~/.subversion
 echo "[groups] 
 metofficesharedrepos =code*.metoffice.gov.uk
 [metofficesharedrepos]
 username =yourusername
-store-plaintext-passwords=no" >> servers.txt
+store-plaintext-passwords=no" >> servers
+
+. ~/.bashrc  # Run bash script or log out and back in
 
 # Check FCM installation
 fcm --version
@@ -157,11 +165,11 @@ cd jules-vn6.1
 export JULES_ROOT=$PWD
 echo $JULES_ROOT
 
-# note: JULES already comes with make.cfg. Why does this need to be overwritten?
+# note: JULES already comes with make.cfg. Why does this need to be overwritten? No need actually. Just need to make sure the environment variables match which they do.
 
 cp /home/clara/make.cfg ~/MODELS/jules-vn6.1/etc/fcm_make
 cd $JULES_ROOT
-fcm make -j 2 -f etc/fcm-make/make.cfg --new
+# this should not be needed (Rose-suite will compile jules.exe) fcm make -j 2 -f etc/fcm-make/make.cfg --new
 
 rosie go
 
@@ -175,7 +183,14 @@ echo 'export PATH=/opt/openmpi/bin:$PATH' >> ~/.bashrc
 echo 'export LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
 echo '#netcdf' >> ~/.bashrc
 echo 'export PATH=/opt/netcdf_par/bin:$PATH' >> ~/.bashrc
-echo 'export LD_LIBRARU_PATH=/opt/netcdf_par/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH=/opt/netcdf_par/lib:$LD_LIBRARY_PATH' >> ~/.bashrc
+source ~/.bashrc
+
+echo '#solving jules.exe error message' >> ~/.bashrc
+echo 'export PATH=~/MODELS/jules-vn6.1/bin:$PATH' >> ~/.bashrc
+echo 'export PATH=~/MODELS/jules-vn6.1/build/bin:$PATH' >> ~/.bashrc
+echo 'export PATH=~/MODELS/jules-vn6.1/rose-stem/bin:$PATH' >> ~/.bashrc
+echo 'export JULES_ROOT=~/MODELS/jules-vn6.1' >> ~/.bashrc
 source ~/.bashrc
 
 ### Check installations worked properly
