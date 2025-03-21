@@ -38,7 +38,7 @@ mask=xr.open_dataset("/rds/general/user/cg2117/home/netcdf/mask_4000m.nc")['frac
 # [1] 13729.72 ## storage volume m3
 # [1] 202500 ## contribution area m2 
 # [1] 11652.64 ## qocha area m2
-qochas_volumes=1E6
+st_max=1E6
 vol_area=11652.64/13729.72
 vol_acc=202500/13729.72
 
