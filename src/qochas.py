@@ -28,7 +28,7 @@ SC = str(os.environ['SCENARIO'])
 jules = xr.open_dataset(os.path.join(SCENARIO_SH_OUTPUT, RC+"_"+SC+"_coupled_jules_oggm_00_99.nc"), decode_coords="all")
 
 #mask >4000masl
-mask=xr.open_dataset("/home/clara/NbS_paper/mask_4000m.nc")['frac']
+mask=xr.open_dataset("/rds/general/user/cg2117/home/netcdf/mask_4000m.nc")['frac']
 
 ### Qochas parameter relations derived from medians from a Sierra Azul small dataset.
 # We will produce linear spaces for storage volume but the range of storage volume would be delimited by the
@@ -38,7 +38,7 @@ mask=xr.open_dataset("/home/clara/NbS_paper/mask_4000m.nc")['frac']
 # [1] 13729.72 ## storage volume m3
 # [1] 202500 ## contribution area m2 
 # [1] 11652.64 ## qocha area m2
-qochas_volumes=np.linspace(1000,1E6,num=100)
+qochas_volumes=1E6
 vol_area=11652.64/13729.72
 vol_acc=202500/13729.72
 
@@ -46,17 +46,17 @@ vol_acc=202500/13729.72
 satcon = xr.open_dataset("/rds/general/user/cg2117/home/netcdf/jules_soil_props_2015_rosetta3_ESA_rahu_modified_v2.nc")['satcon']
 
 # cell area
-cell_area = xr.open_dataset("/home/clara/rahu_data/netcdf/gridcell_area_rahu_v2.nc")['area']
+cell_area = xr.open_dataset("/rds/general/user/cg2117/home/netcdf/gridcell_area_rahu_v2.nc")['area']
 
 ## masking cells where there exists flows over the entire time
-masking=rcp45.surf_roff.sum(dim="time")
+masking=jules.surf_roff.sum(dim="time")
 masking=masking.where(masking>0)
 
 qochas_cap=st_max
 qochas_cap=np.multiply(xr.full_like(mask,st_max).where(masking>0),mask)
 qochas_area = qochas_cap*vol_area
 qochas_acc = qochas_cap*vol_acc
-jules=rcp45.copy(deep=True)
+
 ### Zero arrays for various intermediate variables
 St=xr.zeros_like(jules.surf_roff) #Storage at time step t
 Qav = xr.zeros_like(satcon[0,...]) # storage volume + contributing runoff - losses (Et + drainage). or available storage
