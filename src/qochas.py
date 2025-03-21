@@ -57,6 +57,10 @@ qochas_cap=np.multiply(xr.full_like(mask,st_max).where(masking>0),mask)
 qochas_area = qochas_cap*vol_area
 qochas_acc = qochas_cap*vol_acc
 
+## load UH
+uh = pd.read_csv(home+'/unit_hydro.csv').fillna(0)
+uh["conv"]=uh["conv"]/uh["conv"].sum()
+
 ### Zero arrays for various intermediate variables
 St=xr.zeros_like(jules.surf_roff) #Storage at time step t
 Qav = xr.zeros_like(satcon[0,...]) # storage volume + contributing runoff - losses (Et + drainage). or available storage
