@@ -27,98 +27,63 @@ SC = str(os.environ['SCENARIO'])
 #jules = xr.open_dataset(home+"/hydrodata/jules_runs/coupled_for_nbs/rcp85_ACCESS1-3_coupled_jules_oggm_00_99.nc",decode_coords="all").sel(time=slice("2000-01-01", "2018-12-31"))
 jules = xr.open_dataset(os.path.join(SCENARIO_SH_OUTPUT, RC+"_"+SC+"_coupled_jules_oggm_00_99.nc"), decode_coords="all")
 
-# import high res dem
-dem = rxr.open_rasterio(home+'/sa_dem_3s.tif').isel(band=0).rio.clip_box(minx=-74,miny=-16,maxx=-70,maxy=-12)
+#mask >4000masl
+mask=xr.open_dataset("/home/clara/NbS_paper/mask_4000m.nc")['frac']
+
+### Qochas parameter relations derived from medians from a Sierra Azul small dataset.
+# We will produce linear spaces for storage volume but the range of storage volume would be delimited by the
+# corresponding contribution area as this cannot exceed the cell size.
+# Storage to contribution area is 13729.72/202500 = 0.06558. The cell size is an average of 1.56E7 m2.
+# then the storage volume will be 1023030 M3, so 1E6 m3.
+# [1] 13729.72 ## storage volume m3
+# [1] 202500 ## contribution area m2 
+# [1] 11652.64 ## qocha area m2
+qochas_volumes=np.linspace(1000,1E6,num=100)
+vol_area=11652.64/13729.72
+vol_acc=202500/13729.72
 
 ## hydraulic conductivity
 satcon = xr.open_dataset("/rds/general/user/cg2117/home/netcdf/jules_soil_props_2015_rosetta3_ESA_rahu_modified_v2.nc")['satcon']
 
-
-## regrid dem
-threshold = 4000
-regridder=xe.Regridder(dem,jules,"bilinear")
-dr_out=regridder((dem>threshold).astype(float),keep_attrs=True)
-
-
-### Gamma parameters fitted in R (fitdistr).
-### qochas contribution area (ha): shape=1.197986 , rate= 10.179759
-### qochas area (m2/1000): shape=1.050518 ,rate=8.509921
-### qochas volume capacity (m3): shape=1.777842, rate=7.424725
-### rescaling: qochas_acc max= ,qochas_area max= ,qochas_cap max=
-qochas_n = 8
-qochas_prop = ["qochas_acc","qochas_area","qochas_cap"]
-gamma_shapes = [1.197986,1.050518,1.777842]
-gamma_rates = [10.179759,8.509921,7.424725]
-rescaling = [275.5467,184568.9,83112.31] #This are the maximum of each property to re-scale. Qochas contribution area is further multiplied by 10,000 to convert from ha to m2
-gamma_df =pd.DataFrame(list(zip(qochas_prop,gamma_shapes,gamma_rates)),columns=["Properties","Shape","Rate"])
+# cell area
+cell_area = xr.open_dataset("/home/clara/rahu_data/netcdf/gridcell_area_rahu_v2.nc")['area']
 
 ## masking cells where there exists flows over the entire time
-masking=jules.surf_roff.sum(dim="time")
+masking=rcp45.surf_roff.sum(dim="time")
 masking=masking.where(masking>0)
 
-
-## ------ Generating qochas rasters ------- ##
-qochas_cap=xr.zeros_like(dr_out)
-
-qochas_acc=xr.zeros_like(dr_out)
-np.random.seed(0) ## set seed to get pseudo-random numbers (same results whenever this is run)
-## allocate random fields to qochas properties
-#qochas accumulation area
-a=np.zeros(qochas_cap.shape)
-for i in range(qochas_n):
-    a+=np.random.gamma(shape=gamma_df["Shape"][0] ,scale=1/gamma_df["Rate"][0] ,size=qochas_cap.shape)
-qochas_acc.values=a
-qochas_acc.values=(qochas_acc*dr_out).values*rescaling[0]
-qochas_acc.values=qochas_acc.where(masking>0).values*10000
-
-qochas_area=xr.zeros_like(dr_out)
-#qochas area
-a=np.zeros(qochas_cap.shape)
-for i in range(qochas_n):
-    a+=np.random.gamma(shape=gamma_df["Shape"][1] ,scale=1/gamma_df["Rate"][1] ,size=qochas_cap.shape)
-qochas_area.values=a
-qochas_area.values=(qochas_area*dr_out).values*rescaling[1]
-qochas_area.values=qochas_area.where(masking>0).values
-
-qochas_cap=xr.zeros_like(dr_out)
-#qochas volume capacity
-a=np.zeros(qochas_cap.shape)
-for i in range(qochas_n):
-    a+=np.random.gamma(shape=gamma_df["Shape"][2] ,scale=1/gamma_df["Rate"][2] ,size=qochas_cap.shape)
-qochas_cap.values=a
-qochas_cap.values=(qochas_cap*dr_out).values*rescaling[2]
-qochas_cap.values=qochas_cap.where(masking>0).values
-
-
+qochas_cap=st_max
+qochas_cap=np.multiply(xr.full_like(mask,st_max).where(masking>0),mask)
+qochas_area = qochas_cap*vol_area
+qochas_acc = qochas_cap*vol_acc
+jules=rcp45.copy(deep=True)
 ### Zero arrays for various intermediate variables
-R=xr.zeros_like(satcon[0,...])
 St=xr.zeros_like(jules.surf_roff) #Storage at time step t
-Qav = xr.zeros_like(satcon[0,...]) # storage volume + contributing runoff - losses (Et + drainage).
+Qav = xr.zeros_like(satcon[0,...]) # storage volume + contributing runoff - losses (Et + drainage). or available storage
 R = xr.zeros_like(jules.surf_roff) # Potential recharge at time step t
 Qin = xr.zeros_like(satcon[0,...])
-
-uh = pd.read_csv(home+'/unit_hydro.csv').fillna(0)
-uh["conv"]=uh["conv"]/uh["conv"].sum()
-
 ### Qocha model
-
-cell_area=15526711 #grid_area[0,j,i].values for grid area
-for t in range(jules.sizes["time"]):
+# cell_area=15526711 #grid_area[0,j,i].values for grid area
+for t in range(jules.sizes["time"]-1):
+    #### Calculate losses
+    # Recharge limited by the hydraulic conductivity or the available water
     R[t,...]=np.minimum(86.4*satcon[0,...]*qochas_area,St[t,...])
-    Qav= (St[t,...] +
-                 qochas_acc * jules.surf_roff[t,...] * 86.4 -
-                 R[t,...] -
-                 np.minimum(jules.fao_et0[t,...] * qochas_area * 86.4,
-                            St[t,...]))
-    Qin = (xr.where(Qav>qochas_cap, qochas_cap-St[t,...], qochas_acc*jules.surf_roff[t,...]*86.4))
-    jules.surf_roff[t,...]= (jules.surf_roff[t,...]-(Qin.values/cell_area/86.4))
-
-    #if R[t,...]>0
-    #    R[t:t+uh["conv"].size,...]+=
-    #jules.sub_surf_roff[t,...] = (jules.sub_surf_roff[t,...]+R[t,...]/cell_area/86.4)
-    if t<jules.sizes["time"]-1:
-        St[t+1,...] = (xr.where(Qav>qochas_cap, qochas_cap,Qav))
-
+    St[t,...]=np.add(St[t,...],-R[t,...])
+    ## calculate ET
+    ET=np.minimum(np.abs(jules.fao_et0[t,...]) * qochas_area * 86.4,
+                            St[t,...])
+    St[t,...]=np.add(St[t,...],-ET)
+    ## Calculate available storage
+    Qav=np.add(qochas_cap,-St[t,...])
+    # water that actually enters the qocha is limited by the storage capacity
+    # Qin = (xr.where(Qav>qochas_cap, qochas_cap-St[t,...], qochas_acc*jules.surf_roff[t,...]*86.4))
+    # Calculate inflow. This is considering overflow, i.e. cannot flow more than available storage
+    Qin= np.minimum(qochas_acc*jules.surf_roff[t,...]*86.4,Qav)
+    ## correcting flow
+    jules.surf_roff[t,...]= (jules.surf_roff[t,...]-(np.divide(Qin.values/86.4,cell_area[0,...])))
+    #update storage
+    St[t+1,...] = np.add(Qin,St[t,...])
+# add shallow subsurface delay because of re infiltration
 shallow_asnp = R.values
 shallow_asnp = np.append(shallow_asnp, np.zeros((365,75,102)),axis=0)
 shallow_asnp1 = np.zeros_like(shallow_asnp)
@@ -126,9 +91,9 @@ for i in range(jules.sizes["lon"]):
     for j in range(jules.sizes["lat"]):
         for t in range(jules.sizes["time"]):
             if shallow_asnp[t,j,i] > 0:
-                shallow_asnp1[t:t+uh["conv"].size,j,i]+= shallow_asnp[t,j,i]*uh["conv"].values
+                shallow_asnp1[t:t+uh["conv"].size,j,i]+= (shallow_asnp[t,j,i]*uh["conv"]).values
 #replace flow
-jules.sub_surf_roff.values += shallow_asnp1[:jules.sizes["time"],...]/cell_area/86.4
+jules.sub_surf_roff.values += np.divide(shallow_asnp1[:jules.sizes["time"],...]/86.4,cell_area[0,...].values)
 jules.runoff.values = jules.surf_roff.values + jules.sub_surf_roff.values
 
 ### Add shallow UH as neede
