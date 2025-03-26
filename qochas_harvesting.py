@@ -93,6 +93,9 @@ jules.runoff.values = jules.surf_roff.values + jules.sub_surf_roff.values
 jules['ET_qocha']=ET
 jules['St_qocha']=St
 
+# Save netcdf
+jules.to_netcdf(os.path.join(SCENARIO_SH_OUTPUT, RC+"_"+SC+"_"+"qochas_harvesting_coupled_jules_oggm_00_99.nc"))
+
 
 #available_storage[counter,:]=St.sel(time=jules.surf_roff.time.dt.year.isin(np.arange(2080,2101)),drop=True).resample(time="ME").mean().groupby("time.month").mean().mean(dim=["lat","lon"])
 #et_month[counter,:]=ET.sel(time=jules.surf_roff.time.dt.year.isin(np.arange(2080,2101)),drop=True).resample(time="ME").mean().groupby("time.month").mean().mean(dim=["lat","lon"])
