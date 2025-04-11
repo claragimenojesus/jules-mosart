@@ -1,0 +1,257 @@
+# rose-suite.conf
+
+[jinja2:suite.rc]
+JULES_FCM='fcm:jules.x_tr'
+JULES_REVISION='vn6.1'
+BUILD=true
+BASERUN_ID_STEM='JULES_vn6.1'
+LSPINUP=false
+RESUB='P50Y'
+RUNSTART=1980,1,1,0,0,0
+RUNEND=2018,12,31,22,0,0
+JASMIN_ANCIL_PATH='/gws/nopw/j04/rahu/imperial/netcdf'
+JASMIN_DRIVE_PATH='/gws/nopw/j04/rahu/imperial/WRF_climate_fixed_bis'
+JASMIN_BUILD_QUEUE='short-serial'
+JASMIN_WALLTIME_BUILD='0:30:00'
+SPINCYCLES=10
+SPINLEN='P5Y'
+JASMIN_WALLTIME_SPINUP='PT10H'
+JASMIN_RUN_QUEUE='par-single'
+JASMIN_WALLTIME_RUN='PT10H'
+JASMIN_MPI_NUM_TASKS=10
+LOCATION='CEDA_JASMIN'
+MPI_NUM_TASKS=12
+OMP_NUM_THREADS=1
+JASMIN_OUTPUT_FOLDER='/gws/nopw/j04/rahu/imperial/JULES_output/u-cz655_zwmax10'
+L_VG_SOIL=true
+SOIL_PROPS_FILE='jules_soil_props_2015_rosetta3_ESA_rahu_modified_v2.nc'
+
+
+# suite.rc.CEDA_JASMIN
+
+
+    [[JASMIN]]
+        env-script = """
+                eval $(rose task-env)
+                export PATH=/apps/jasmin/metomi/bin:$PATH
+#               module load jaspy
+                module load intel/19.0.0
+#               module load contrib/gnu/gcc/8.2.0
+                module load contrib/gnu/gcc/7.3.0
+                module load eb/OpenMPI/intel/3.1.1
+#               module add parallel-netcdf/intel
+                module list 2>&1
+                env | grep LD_LIBRARY_PATH
+                export NETCDF_FORTRAN_ROOT=/home/users/siwilson/netcdf_par/3.1.1/intel.19.0.0/
+                export NETCDF_ROOT=/home/users/siwilson/netcdf_par/3.1.1/intel.19.0.0/
+                export HDF5_LIBDIR=/home/users/siwilson/netcdf_par/3.1.1/intel.19.0.0/lib
+#               module load intel/19.0.0
+                export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+                export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HDF5_LIBDIR
+                env | grep LD_LIBRARY_PATH
+                """
+        # env-script = """
+        #         eval $(rose task-env)
+        #         export PATH=/apps/jasmin/metomi/bin:$PATH
+        #         module load intel/19.0.0
+        #         module load contrib/gnu/gcc/7.3.0
+        #         module load eb/OpenMPI/intel/3.1.1
+        #         module list 2>&1
+        #         env | grep LD_LIBRARY_PATH
+        #         export NETCDF_FORTRAN_ROOT=/gws/nopw/j04/jules/admin/netcdf/netcdf_par/3.1.1/intel.19.0.0/
+        #         export NETCDF_ROOT=/gws/nopw/j04/jules/admin/netcdf/netcdf_par/3.1.1/intel.19.0.0/
+        #         export HDF5_LIBDIR=/gws/nopw/j04/jules/admin/netcdf/netcdf_par/3.1.1/intel.19.0.0/lib
+        #         export I_MPI_PMI_LIBRARY=/usr/lib64/libpmi.so
+        #         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HDF5_LIBDIR
+        #         env | grep LD_LIBRARY_PATH
+        #         """
+        [[[job]]]
+            submission polling intervals = PT1M
+            execution polling intervals = PT1M
+
+    [[JASMIN_LOTUS]]
+        inherit = None, JASMIN
+
+        [[[job]]]
+            batch system = slurm
+
+    [[JASMIN_BACKGROUND]]
+        inherit = None, JASMIN
+
+        [[[job]]]
+            batch system = background
+
+    [[FCM_MAKE_CEDA_JASMIN]]
+        inherit = None, JASMIN_BACKGROUND
+
+        [[[environment]]]
+            JULES_BUILD=normal
+            JULES_OMP=noomp
+           # NETCDF_FORTRAN_ROOT=/gws/nopw/j04/jules/admin/netcdf/netcdf.openmpi/
+           # NETCDF_ROOT=/gws/nopw/j04/jules/admin/netcdf/netcdf.openmpi/
+	    NETCDF_FORTRAN_ROOT=/home/users/siwilson/netcdf.openmpi/
+	    NETCDF_ROOT=/home/users/siwilson/netcdf.openmpi/
+            JULES_PLATFORM=jasmin-lotus-intel
+
+        [[[directives]]]
+            --partition = {{ JASMIN_BUILD_QUEUE }}
+            --time      = {{ JASMIN_WALLTIME_BUILD }}
+            --ntasks    = 1
+
+    [[JULES_CEDA_JASMIN]]
+        inherit = None, JASMIN_LOTUS
+        [[[environment]]]
+            ROSE_TASK_APP = jules
+            ROSE_LAUNCHER = mpirun
+	    OUTPUT_FOLDER = {{ JASMIN_OUTPUT_FOLDER }}
+            ANCIL_FILE = {{ JASMIN_ANCIL_PATH }}
+            DRIVE_FILE = {{ JASMIN_DRIVE_PATH }}
+            RUN_ID_STEM = {{ BASERUN_ID_STEM }}
+            SPIN_END = $({{ROSEDATE}} $CYLC_TASK_CYCLE_POINT -s {{SPINLEN}} -f '%Y%m%d')
+
+        [[[directives]]]
+	    --partition = {{ JASMIN_RUN_QUEUE }}
+#            --time = {{ JASMIN_WALLTIME_RUN }}
+	    --time="10:00:00"
+	    --mem=32000
+            --ntasks = {{ JASMIN_MPI_NUM_TASKS }}
+#	    --constraint="skylake348G|broadwell256G"
+	    --constraint="intel"
+#	    --exclude="host122,host129,host135,host159,host164,host193,host452"
+
+# suite.rc
+
+#!jinja2
+
+{% set CYCLE_INIT = '%04d%02d%02dT%02d%02d%02d' % (RUNSTART[0], RUNSTART[1], RUNSTART[2], RUNSTART[3], RUNSTART[4], RUNSTART[5]) %}
+{% set CYCLE_FINAL = '%04d%02d%02dT%02d%02d%02d' % (RUNEND[0], RUNEND[1], RUNEND[2], RUNEND[3], RUNEND[4], RUNEND[5]) %}
+{% set ROSEDATE = 'rose date --calendar gregorian' %}
+{% set RECON_LEN = 'P1D' %}
+
+[cylc]
+    # Default settings for suite events, only set to override
+    UTC mode = True
+    [[events]]
+        # abort on inactivity = True
+        # abort on timeout = True
+        # inactivity = P30D
+        # mail events = inactivity, stalled, timeout
+        # timeout = P3D
+
+[scheduling]
+    initial cycle point = {{CYCLE_INIT}}
+    final cycle point = {{CYCLE_FINAL}}-PT1S
+    [[dependencies]]
+        [[[ R1 ]]]
+            graph = """
+                {{ ('fcm_make =>' if BUILD else '') + ('spinup_01' if LSPINUP else 'RECON => S2' ) }}
+                {% if LSPINUP %}
+                    {% for i in range(1, SPINCYCLES) %}
+                        spinup_{{ '%02d' % i }}  => spinup_{{ '%02d' % (i+1) }}
+                    {% endfor %}
+                    {{ ( 'spinup_%02d => S2' ) % SPINCYCLES }}
+                {% endif %}
+	    	"""
+
+        [[[ {{RESUB}} ]]]
+            graph = """
+                S2[-{{RESUB}}] => S2
+                """
+
+[runtime]
+
+{% include 'site/suite.rc.'+ LOCATION %}
+
+    [[root]]
+        script = rose task-run --verbose
+        [[[events]]]
+#            mail events = submission failed, submission timeout
+            submission timeout = P1D
+        [[[environment]]]
+           JULES_REVISION = {{ JULES_REVISION if BUILD else 'No build required' }}
+           ROSE_SUITE_NAME = $CYLC_SUITE_NAME
+           JULES_FCM = {{ JULES_FCM }}
+           # JULES_REVISION = {{ JULES_REVISION }}
+           # {%- if JULES_REVISION == '' %}
+           #    AT_JULES_REVISION = ''
+           # {%- else %}
+           #    AT_JULES_REVISION = @{{ JULES_REVISION }}
+           # {%- endif %}
+
+    [[fcm_make]]
+        inherit = None, FCM_MAKE_{{ LOCATION }}
+
+{% if L_VG_SOIL %}
+    {% set USE_VG_SOIL = '.true.' %}
+{% else %}
+    {% set USE_VG_SOIL = '.false.' %}
+{% endif %}
+
+    [[JULES]]
+        inherit = None, JULES_{{ LOCATION }}
+        script = "mkdir -p ${OUTPUT_FOLDER} ; rose task-run --path= --path=share/fcm_make/build/bin"
+	[[[environment]]]
+	    SOIL_PROPS_FILE = {{ SOIL_PROPS_FILE }}
+	    USE_VG_SOIL = {{ USE_VG_SOIL }}
+
+    [[MAIN_RUN]]
+        inherit = None,JULES
+        [[[environment]]]
+	    MAIN_TASK_START = $({{ROSEDATE}} $CYLC_TASK_CYCLE_POINT -f "'%Y-%m-%d %H:%M:%S'")
+	    TRUNC_END = $( if [[ $({{ROSEDATE}} {{CYCLE_FINAL}}) > $({{ROSEDATE}} $CYLC_TASK_CYCLE_POINT -s {{RESUB}}) ]]; then echo $CYLC_TASK_CYCLE_POINT -s {{RESUB}}; else echo {{CYCLE_FINAL}}; fi )
+	    MAIN_TASK_END = $({{ROSEDATE}} $TRUNC_END -f "'%Y-%m-%d %H:%M:%S'")
+	    USE_FILE = '.true.'
+            DUMPFILE = '.true.'
+	    SPINDUMP = $( if [[ $CYLC_TASK_CYCLE_POINT == $CYLC_SUITE_INITIAL_CYCLE_POINT ]]; then  if {{ LSPINUP|lower() }} ;then echo {{ 'spinup_%02d' % SPINCYCLES }} ; else echo 'RECON' ; fi ; else echo $CYLC_TASK_NAME; fi )
+            DUMPTIME = $( if [[ $CYLC_TASK_CYCLE_POINT == $CYLC_SUITE_INITIAL_CYCLE_POINT ]]; then if {{ LSPINUP|lower() }} ;then echo  $SPIN_END ; else echo '19800101' ; fi ; else  echo $({{ROSEDATE}} $CYLC_TASK_CYCLE_POINT -f %Y%m%d); fi )
+            INITFILE = "${OUTPUT_FOLDER}/${RUN_ID_STEM}.${SPINDUMP}.dump.${DUMPTIME}.0.nc"
+            ID_STEM = "$RUN_ID_STEM.$(basename $CYLC_TASK_NAME ${CYLC_TASK_NAME})"
+
+    [[S2]]
+        inherit = MAIN_RUN
+    	[[[job]]]
+            execution time limit = {{ JASMIN_WALLTIME_RUN }}
+#	    batch system = slurm
+
+    [[RECON]]
+    	inherit = None,MAIN_RUN
+        [[[directives]]]
+	    --time=00:30:00
+	[[[environment]]]
+            ROSE_APP_OPT_CONF_KEYS = recon
+            MAIN_TASK_START = $({{ROSEDATE}} $CYLC_SUITE_INITIAL_CYCLE_POINT -f "'%Y-%m-%d %H:%M:%S'")
+            MAIN_TASK_END = $({{ROSEDATE}} $CYLC_SUITE_INITIAL_CYCLE_POINT -s {{RECON_LEN}} -f "'%Y-%m-%d %H:%M:%S'")
+            ID_STEM = "$RUN_ID_STEM.$(basename $CYLC_TASK_NAME ${CYLC_TASK_NAME})"
+            INITFILE = "${OUTPUT_FOLDER}/${RUN_ID_STEM}.spinup_10.dump.19800101.0.nc"
+
+    [[SPINUP]]
+    	inherit = None,JULES
+    	[[[job]]]
+            execution time limit = {{ JASMIN_WALLTIME_SPINUP }}
+#	    batch system = slurm
+	[[[environment]]]
+            MAIN_TASK_START = $({{ROSEDATE}} $CYLC_SUITE_INITIAL_CYCLE_POINT -f "'%Y-%m-%d %H:%M:%S'")
+            MAIN_TASK_END = $({{ROSEDATE}} $CYLC_SUITE_INITIAL_CYCLE_POINT -s {{SPINLEN}} -f "'%Y-%m-%d %H:%M:%S'")
+            ID_STEM = "$RUN_ID_STEM.$(basename $CYLC_TASK_NAME ${CYLC_TASK_NAME})"
+            ID_STEM2 = "$RUN_ID_STEM.$(basename $CYLC_TASK_NAME ${CYLC_TASK_NAME##*_})"
+
+{% for i in range(0, (SPINCYCLES)) %}
+    {% if i == 0 %}
+        {% set USE_FILE = '.false.' %}
+        {% set INFILE = "tmp.nc" %}
+        {% set ROSE_APP_OPT_CONF_KEYS = "spinup0" %}
+    {% else %}
+        {% set USE_FILE = '.true.' %}
+        {% set INFILE = "${OUTPUT_FOLDER}/${ID_STEM2}%02d.dump.${SPIN_END}.0.nc" % i %}
+        {% set ROSE_APP_OPT_CONF_KEYS = "spinup" %}
+    {% endif %}
+    [[spinup_{{'%02d' % (i+1) }}]]
+        inherit = SPINUP
+        [[[environment]]]
+	    ROSE_APP_OPT_CONF_KEYS = {{ ROSE_APP_OPT_CONF_KEYS }}
+	    USE_FILE = {{ USE_FILE }}
+	    INITFILE = {{ INFILE }}
+            DUMPFILE = {{ USE_FILE }}
+{%- endfor %}
+
+
