@@ -416,6 +416,18 @@ def main():
     )
     var[:] = n_overland_masked    
     nco.close()
+
+##### If using reduced grid setup (suite u-cz655) where the latlon are inverted, then modify the grid for land.nc and mosart.nc files by running the following: (CGJ 11/01/2024)
+land_file = xr.open_dataset(os.path.join(OUTPUT_DIRECTORY, 'land.nc'))
+land_file_new = land_file.reindex(lat=list(reversed(land_file.lat)))
+land_file_new.to_netcdf(os.path.join(OUTPUT_DIRECTORY, 'land_new.nc'), 'w', format="NETCDF4")
+
+mosart_file = xr.open_dataset(os.path.join(OUTPUT_DIRECTORY, 'mosart.nc'))
+mosart_file_new = mosart_file.reindex(lat=list(reversed(mosart_file.lat)))
+mosart_file_new.to_netcdf(os.path.join(OUTPUT_DIRECTORY, 'mosart_new.nc'), 'w', format="NETCDF4")
+
+
+#### end of added code by CGJ
         
 if __name__ == "__main__":
     main()
