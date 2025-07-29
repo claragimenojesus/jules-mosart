@@ -5,9 +5,9 @@ simulation:
   output_path: ../mosart-output
   
 grid:
-  path: ../mosart-input/mosart.nc
+  path: ../mosart-input/mosart_new.nc
   land:
-    path: ../mosart-input/land.nc
+    path: ../mosart-input/land_new.nc
 
 runoff:
   read_from_file: true
